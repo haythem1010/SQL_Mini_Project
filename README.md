@@ -35,12 +35,6 @@ This course follows a **project-based and interactive approach**:
 - Practice-focused mini-projects.
 - Reference exercises and solutions provided throughout.
 
-## 📁 Repository Contents
-
-- `/projects/`: Mini-projects and case studies
-- `/queries/`: Example SQL queries and solutions
-- `/docs/`: Reference material and technical documentation
-- `/scripts/`: Setup scripts and sample data loading files
 
 ## ✅ Skills You Will Gain
 
@@ -50,6 +44,3 @@ This course follows a **project-based and interactive approach**:
 - Writing stored procedures
 - Using SQL for ETL workflows
 
----
-
-> 🧑‍💻 *This repository serves as both a portfolio of SQL skills developed during the course and a reference toolkit for future data-related projects.*
