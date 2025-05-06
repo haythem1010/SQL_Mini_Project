@@ -1,0 +1,41 @@
+----------------
+|| Question 3 ||
+----------------
+
+> In the database WideWorldImporters, write a SQL query which reports the highest loss of money from orders not being converted into invoices, by customer category.
+
+> The name and id of the customer who generated this highest loss must also be identified. The resultset is ordered by highest loss.
+
+> You should be able to write it in pure SQL, but if too challenging, you may use T-SQL and cursors.
+> Resultset enclosed in Q4-Resultset.csv
+
+-----------
+|| Query ||
+-----------
+
+select
+	CustomerCategoryName,
+	MaxLoss, 
+	CustomerName, 
+	CustomerID
+from (
+    	select 
+        	cc.CustomerCategoryName,
+        	c.CustomerName,
+        	c.CustomerID,
+        	SUM(ol.Quantity * ol.UnitPrice) AS MaxLoss,
+        	ROW_NUMBER() over (partition by cc.CustomerCategoryName order by SUM(ol.Quantity * ol.UnitPrice) DESC) as Rank
+    	from 
+		Sales.CustomerCategories as cc join 
+		Sales.Customers c on cc.CustomerCategoryID = c.CustomerCategoryID join Sales.Orders o on c.CustomerID = o.CustomerID join 
+		Sales.OrderLines ol on o.OrderID = ol.OrderID left join
+		Sales.Invoices i on o.OrderID = i.OrderID
+    	where 
+		i.InvoiceID IS NULL
+    	group by 
+		cc.CustomerCategoryName, c.CustomerName, c.CustomerID
+) as RankedLosses
+where
+	Rank = 1
+order by 
+	MaxLoss DESC;

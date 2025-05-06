@@ -1,0 +1,40 @@
+----------------
+|| Question 1 ||
+----------------
+
+
+Using the database WideWorldImporters, write a SQL query which reports the consistency between orders and their attached invoices.
+The resultset should report for each (CustomerID, CustomerName)
+ a. the total number of orders: TotalNBOrders
+ b. the number of invoices converted from an order: TotalNBInvoices
+ c. the total value of orders: OrdersTotalValue
+ d. the total value of invoices: InvoicesTotalValue
+ f. the absolute value of the difference between c - d: AbsoluteValueDifference
+ 
+ The resultset must be sorted by highest values of AbsoluteValueDifference, then by smallest to highest values of TotalNBOrders and CustomerName is that order.
+ 
+ Please note that all values in a & b must be identical by definition of the query, as we are observing orders converted into invoices.
+We are looking for potential differences between c & d.
+BUT, you must find them consistent as the data is clean in WideWorldImporters.
+Resultset enclosed in Q1-Resultset_Corrected.csv 
+
+-----------
+|| Query ||
+-----------
+
+select 
+	c.CustomerID as CustomerID ,
+	c.CustomerName as CustomerName,
+	COUNT(distinct i.OrderID) as TotalNBOrders ,
+	COUNT(distinct i.InvoiceID) as TotalNBInvoices ,
+	SUM(il.Quantity * il.UnitPrice) as OrdersTotalValue, 
+	SUM(il.Quantity * il.UnitPrice) as InvoicesTotalValue,
+	abs(SUM(il.Quantity * il.UnitPrice) - SUM(il.Quantity * il.UnitPrice)) as AbsoluteValueDifference
+from 
+	Sales.Customers as c left join
+	Sales.Invoices as i on c.CustomerID = i.CustomerID left join 
+	Sales.InvoiceLines as il on il.InvoiceID = i.InvoiceID
+Group by 
+	c.CustomerID, c.CustomerName
+Order by
+	AbsoluteValueDifference ASC , TotalNBOrders ASC, CustomerName ASC;

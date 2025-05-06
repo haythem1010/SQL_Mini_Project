@@ -1,0 +1,83 @@
+----------------
+|| Question 2 ||
+----------------
+
+
+> For the CustomerId = 1060 (CustomerName = 'Anand Mudaliyar')
+> Identify the first InvoiceLine of his first Invoice, where "first" means the lowest respective IDs, and write an update query increasing the UnitPrice of this InvoiceLine by 20.
+
+> A re-run of the query in Q1 gives the resultset in Q2-Resultset_Corrected.csv (corrected on 15th April 2018 - Summed values in columns OrdersTotalValue & InvoicesTotalValue were incorrect) .
+
+> If you haven't managed to answer Q1, add the following selection query to the previous update query: CustomerId, CustomerName, InvoiceTotal.
+> The latter is the sum of all invoice lines for the target invoice. 
+
+-----------
+|| Query ||
+-----------
+
+
+select 
+    c.CustomerID,
+    SUM(il.Quantity * il.UnitPrice) as OrdersTotalValue
+into  #TempOrdersTotalValue
+from
+	Sales.Customers as c left join 
+	Sales.Invoices as i on c.CustomerID = i.CustomerID left join 
+	Sales.InvoiceLines as il on il.InvoiceID = i.InvoiceID
+group by c.CustomerID;
+
+UPDATE 
+	Sales.InvoiceLines
+set 
+	UnitPrice = UnitPrice + 20
+where InvoiceLineID = ( 
+    select top 1 InvoiceLineID 
+    from 
+		Sales.InvoiceLines il join
+		Sales.Invoices i on il.InvoiceID = i.InvoiceID
+    where i.CustomerID = 1060
+    order by i.InvoiceID ASC 
+);
+
+select 
+	c.CustomerID as CustomerID ,
+	c.CustomerName as CustomerName,
+	COUNT(distinct i.OrderID) as TotalNBOrders ,
+	COUNT(distinct i.InvoiceID) as TotalNBInvoices ,
+	MAX(t.OrdersTotalValue) as OrdersTotalValue ,
+	SUM(il.Quantity * il.UnitPrice) as InvoicesTotalValue,
+	abs(SUM(il.Quantity * il.UnitPrice) - MAX(t.OrdersTotalValue)) as AbsoluteValueDifference
+from 
+	Sales.Customers as c left join
+	Sales.Invoices as i on c.CustomerID = i.CustomerID left join 
+	Sales.InvoiceLines as il on il.InvoiceID = i.InvoiceID left join 
+	#TempOrdersTotalValue t on c.CustomerID = t.CustomerID
+Group by 
+	c.CustomerID, c.CustomerName
+Order by
+	AbsoluteValueDifference DESC , TotalNBOrders ASC, CustomerName ASC; 
+
+DROP TABLE #TempOrdersTotalValue;
+----------------------------------------------------------------------------------------------------------
+
+--  Q2-Alternative-Resultset
+select 
+	c.CustomerID ,
+	c.CustomerName , 
+	SUM(il.Quantity * il.UnitPrice) as InvoicesLinesUpdated
+from 
+	Sales.Customers as c left join 
+	Sales.Invoices as i on i.CustomerID = c.CustomerID left join
+	Sales.InvoiceLines as il on i.InvoiceID = il.InvoiceID
+where 
+	c.CustomerID = 1060 and il.InvoiceID = (select top 1 
+				InvoiceID
+			FROM 
+				Sales.Invoices
+			where 
+				InvoiceID = ( select top 1 InvoiceID from Sales.Invoices where CustomerID = 1060 order by InvoiceID)
+			order by 
+				InvoiceID ASC )
+group by 
+	c.CustomerID, c.CustomerName;
+

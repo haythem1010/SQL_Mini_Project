@@ -1,0 +1,33 @@
+----------------
+|| Question 5 ||
+----------------
+
+> In the database SQLPlayground, write a SQL query selecting all the customers' data who have purchased all the products AND have bought more than 50 products in total (sum of all purchases).
+
+> Resultset enclosed in Q5-Resultset.csv
+
+-----------
+|| Query ||
+-----------
+
+select 
+	c.CustomerId,
+	c.CustomerName
+from 
+	Customer as c
+where 
+	not exists (
+		select 
+			* 
+		from 
+			[Product] as p 
+		where 
+			not exists (
+				select 
+					*
+				from 
+					Purchase as pu
+				where 
+					pu.CustomerId = C.CustomerId and pu.ProductId = p.ProductId  and (SELECT SUM(pu2.Qty) 
+														FROM Purchase pu2 
+														WHERE pu2.CustomerId = c.CustomerId) > 50))
